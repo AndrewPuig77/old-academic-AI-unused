@@ -7,7 +7,7 @@
 
 Transform research papers AND class materials into actionable insights with cutting-edge AI analysis. Perfect for researchers, students, and academics who need comprehensive document analysis and study tools.
 
-![Academic AI Assistant Demo](https://via.placeholder.com/800x400/1f77b4/ffffff?text=Academic+AI+Assistant)
+![Academic AI Assistant Demo](https://8pkvharc8cebbrhcpjhazn.streamlit.app/)
 
 ## ✨ Dual-Purpose Features
 
