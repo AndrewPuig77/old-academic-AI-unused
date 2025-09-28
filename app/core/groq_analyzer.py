@@ -446,7 +446,7 @@ class GroqAnalyzer:
                 Limit to 400-500 words.
 
                 {doc_name.upper()} TEXT:
-                {{paper_text[:8000]}}
+                {paper_text[:8000]}
                 """
                 
                 response = self.client.chat.completions.create(
