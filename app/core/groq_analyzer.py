@@ -722,4 +722,96 @@ class GroqAnalyzer:
         except Exception as e:
             logger.error(f"Error during paper analysis: {e}")
             return {"error": f"Analysis failed: {str(e)}"}
+
+    def suggest_related_papers(self, analyzed_content: str) -> str:
+        """
+        Suggest related papers based on the analyzed content.
+        
+        Args:
+            analyzed_content: The content that was analyzed
+            
+        Returns:
+            String containing suggested related papers
+        """
+        try:
+            prompt = f"""
+            Based on this research analysis, suggest 8-10 highly relevant papers that researchers should read to gain deeper understanding of this topic. 
+
+            For each suggested paper:
+            - Provide likely author names and publication year
+            - Give a realistic title that would exist in this research area
+            - Explain why this paper would be relevant (2-3 sentences)
+            - Indicate what specific aspects it would illuminate
+
+            Focus on:
+            1. Foundational/seminal works in this area
+            2. Recent advances and methodology papers
+            3. Review papers that provide broader context
+            4. Papers with contrasting viewpoints or approaches
+            5. Papers that extend or apply these findings
+
+            Format as a numbered list with clear structure.
+
+            Analyzed Content:
+            {analyzed_content[:8000]}
+            """
+            
+            response = self.client.chat.completions.create(
+                model=self.model_name,
+                messages=[{"role": "user", "content": prompt}],
+                max_tokens=2000,
+                temperature=0.3
+            )
+            return response.choices[0].message.content
+            
+        except Exception as e:
+            logger.error(f"Error suggesting related papers: {e}")
+            return f"Error generating related papers suggestions: {str(e)}"
+
+    def generate_research_questions(self, analyzed_content: str) -> str:
+        """
+        Generate research questions based on the analyzed content.
+        
+        Args:
+            analyzed_content: The content that was analyzed
+            
+        Returns:
+            String containing generated research questions
+        """
+        try:
+            prompt = f"""
+            Based on this research analysis, generate 10-12 thought-provoking research questions that could guide future research in this area.
+
+            Create questions that:
+            1. **Build on current findings** - Extend or test the results in new contexts
+            2. **Address identified limitations** - Target specific methodological or conceptual gaps
+            3. **Explore mechanisms** - Dig deeper into how or why phenomena occur
+            4. **Cross-disciplinary connections** - Link to other fields or perspectives
+            5. **Practical applications** - Connect theory to real-world implementation
+            6. **Scale considerations** - Address different levels of analysis
+            7. **Temporal dynamics** - Explore changes over time
+
+            For each question:
+            - Make it specific and actionable
+            - Ensure it can be reasonably investigated
+            - Explain briefly why it's important (1-2 sentences)
+            - Suggest the most appropriate methodology
+
+            Format as a numbered list with clear explanations.
+
+            Analyzed Content:
+            {analyzed_content[:8000]}
+            """
+            
+            response = self.client.chat.completions.create(
+                model=self.model_name,
+                messages=[{"role": "user", "content": prompt}],
+                max_tokens=2500,
+                temperature=0.4
+            )
+            return response.choices[0].message.content
+            
+        except Exception as e:
+            logger.error(f"Error generating research questions: {e}")
+            return f"Error generating research questions: {str(e)}"
             
