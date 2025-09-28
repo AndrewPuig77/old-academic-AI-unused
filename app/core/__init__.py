@@ -3,6 +3,6 @@ Core modules for AI Research Paper Assistant
 """
 
 from .pdf_processor import PDFProcessor
-from .gemini_analyzer import GeminiAnalyzer
+from .groq_analyzer import GroqAnalyzer
 
-__all__ = ['PDFProcessor', 'GeminiAnalyzer']
+__all__ = ['PDFProcessor', 'GroqAnalyzer']
