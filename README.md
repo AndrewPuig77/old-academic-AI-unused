@@ -7,7 +7,7 @@
 
 Transform research papers AND class materials into actionable insights with cutting-edge AI analysis. Perfect for researchers, students, and academics who need comprehensive document analysis and study tools.
 
-![Academic AI Assistant Demo](https://via.placeholder.com/800x400/1f77b4/ffffff?text=Academic+AI+Assistant)
+**🚀 [Try the Live Demo](https://8pkvharc8cebbrhcpjhazn.streamlit.app/)**
 
 ## ✨ Dual-Purpose Features
 
@@ -132,116 +132,15 @@ Open your browser to **http://localhost:8501** and start analyzing! 🎉
 ### Core Technologies
 - **🐍 Python 3.11+** - Modern Python with advanced features
 - **🎨 Streamlit** - Beautiful, interactive web interface with modern black theme
-- **🤖 Google Gemini 2.5/2.0** - State-of-the-art AI for analysis (FREE tier: 1,500 requests/day!)
+-
 - **📄 PyMuPDF** - Advanced PDF processing and text extraction
 - **� Plotly, Matplotlib, Seaborn** - Interactive visualizations and charts
 - **☁️ WordCloud** - Visual text analysis and keyword representation
 - **� ReportLab** - PDF export functionality
 
-### FREE Tier Benefits
-- **✨ Gemini 2.5 Flash**: 1,500 requests per day
-- **🧠 Gemini 2.0 Pro**: 100 requests per day
-- **� Analysis Capacity**: Analyze 250-500 documents daily!
-- **⏰ Reset**: Quota resets daily at midnight UTC
-
-## 🎯 Demo Examples
-
-### Research Paper Analysis
-**Paper**: "Attention Is All You Need" (Transformer Architecture)
-
-```
-📝 EXECUTIVE SUMMARY
-This groundbreaking paper introduces the Transformer architecture, 
-revolutionizing NLP by relying entirely on attention mechanisms...
-
-🔬 METHODOLOGY ANALYSIS  
-Research Design: Experimental study with novel neural architecture
-Strength: 5/5 - Rigorous experimental setup with comprehensive baselines...
-
-💡 GENERATED HYPOTHESES
-1. Transformer architecture can be adapted for computer vision tasks
-2. Attention mechanisms might improve other sequence modeling problems...
-```
-
-### Study Material Creation
-**Material**: "Introduction to Machine Learning" (Textbook Chapter)
-
-```
-📇 FLASHCARDS GENERATED (15 cards)
-Front: What is supervised learning?
-Back: A machine learning paradigm where algorithms learn from labeled training data...
-
-❓ PRACTICE QUESTIONS
-Multiple Choice: Which algorithm is best for classification tasks with non-linear boundaries?
-A) Linear Regression B) Decision Trees C) SVM with RBF kernel D) All of the above
-**Answer: C**
-
-📖 STUDY GUIDE
-KEY CONCEPTS: Supervised vs Unsupervised Learning, Training/Validation Split...
-EXAM FOCUS: Likely to test algorithm selection and evaluation metrics...
-```
-
-## 🏗️ Project Structure
-
-```
-academic-ai-assistant/
-├── 📁 app/
-│   ├── 🔧 core/
-│   │   ├── pdf_processor.py      # PDF text extraction & processing
-│   │   ├── gemini_analyzer.py    # Gemini AI integration with study tools
-│   │   └── __init__.py
-│   ├── 🛠️ utils/
-│   │   ├── helpers.py            # Utility functions
-│   │   ├── report_generator.py   # Advanced report generation
-│   │   └── __init__.py
-│   └── __init__.py
-├── 📁 uploads/                   # Temporary file storage  
-├── 🎨 main.py                   # Streamlit main application (5 tabs!)
-├── ⚙️ requirements.txt          # Python dependencies
-├── 🔧 .env.example              # Environment template
-└── 📖 README.md                 # This file
-```
-
-## 🚀 Roadmap
-
-### ✅ Current Features (v2.0)
-- ✅ Research Paper Analysis with AI Insights
-- ✅ Student Study Tools (Flashcards, Questions, Guides) 
-- ✅ Modern Black Theme Interface
-- ✅ Export Functionality for All Materials
-- ✅ Advanced AI Research Assistant Features
-- ✅ Lightning-fast Groq AI Integration
-
-### 🎯 Coming Soon (v2.1)
-- 🔄 Multi-Document Comparison
-- 📊 Visual Knowledge Graphs
-- 📱 Mobile-Responsive Design
-- 🌐 Multi-Language Support
-
 ##  License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
-
-- **🤖 Google Gemini** - For providing powerful FREE AI capabilities
-- **🎨 Streamlit** - For the amazing web framework
-- **📄 PyMuPDF** - For robust PDF processing
-- **🎓 Academic Community** - For inspiring this comprehensive tool
-
-## 📞 Support
-
-- 🐛 **Issues**: [GitHub Issues](https://github.com/AndrewPuig77/AI-Research-Paper-analyst/issues)
-- 💬 **Discussions**: Create discussions for feature requests
-- � **Contact**: Questions about implementation or customization
-
-## ⭐ Show Your Support
-
-If this project helped you with your research or studies:
-- ⭐ **Star** this repository
-- 🍴 **Fork** for your own modifications  
-- 📢 **Share** with fellow researchers and students
-- 💝 **Contribute** to make it even better
 
 ---
 
