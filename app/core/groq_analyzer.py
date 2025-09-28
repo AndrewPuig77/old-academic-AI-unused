@@ -65,6 +65,70 @@ class GroqAnalyzer:
             logger.error(f"Failed to initialize Groq model: {e}")
             raise ValueError(f"Could not initialize Groq model: {e}")
     
+    def _get_document_description(self, document_type: str) -> dict:
+        """
+        Get appropriate terminology for different document types.
+        
+        Args:
+            document_type: The document type from the UI selection
+            
+        Returns:
+            Dictionary with appropriate terms for the document type
+        """
+        type_mapping = {
+            '🔬 Research Paper': {
+                'name': 'research paper',
+                'action': 'research paper analysis',
+                'context': 'academic research'
+            },
+            '📚 Textbook Chapter': {
+                'name': 'textbook chapter', 
+                'action': 'educational content analysis',
+                'context': 'educational material'
+            },
+            '📝 Lecture Notes': {
+                'name': 'lecture notes',
+                'action': 'lecture content analysis', 
+                'context': 'educational content'
+            },
+            '📋 Assignment/Homework': {
+                'name': 'assignment material',
+                'action': 'assignment analysis',
+                'context': 'educational assignment'
+            },
+            '📄 Article/Essay': {
+                'name': 'article',
+                'action': 'article analysis',
+                'context': 'written article'
+            },
+            '📊 Report/Thesis': {
+                'name': 'academic report',
+                'action': 'report analysis',
+                'context': 'academic document'
+            },
+            '🎓 Study Guide': {
+                'name': 'study guide',
+                'action': 'study material analysis',
+                'context': 'study material'
+            },
+            '🗒️ Class Handout': {
+                'name': 'class handout',
+                'action': 'handout analysis',
+                'context': 'educational material'
+            },
+            '📖 Other Academic Material': {
+                'name': 'academic document',
+                'action': 'document analysis',
+                'context': 'academic material'
+            }
+        }
+        
+        return type_mapping.get(document_type, {
+            'name': 'academic document',
+            'action': 'document analysis', 
+            'context': 'academic material'
+        })
+    
     def analyze_research_paper(self, text: str, analysis_type: str = "comprehensive") -> Dict[str, Any]:
         """
         Analyze research paper content using Groq AI.
@@ -356,28 +420,33 @@ class GroqAnalyzer:
         results['document_type'] = document_type
         
         try:
+            # Get document-specific terminology
+            doc_info = self._get_document_description(document_type)
+            doc_name = doc_info['name']
+            doc_context = doc_info['context']
+            
             # Generate sophisticated summary if requested
             if analysis_options.get('summary', False):
                 summary_prompt = f"""
-                As an expert research analyst with deep expertise in academic literature, provide a comprehensive but concise summary of this research paper. Your analysis should demonstrate sophisticated understanding of the research domain.
+                As an expert academic analyst with deep expertise in {doc_context}, provide a comprehensive but concise summary of this {doc_name}. Your analysis should demonstrate sophisticated understanding of the subject matter.
 
-                📋 RESEARCH SUMMARY:
+                📋 CONTENT SUMMARY:
 
-                • **Main Research Question/Problem**: What specific problem or gap in knowledge does this paper address? What makes this research question significant in the broader field?
+                • **Main Topic/Focus**: What specific topic or subject does this {doc_name} address? What makes this content significant in the broader academic field?
 
-                • **Key Methodology**: Describe the research approach with attention to methodological rigor. What specific methods were employed and why were they appropriate for addressing the research question?
+                • **Key Approach/Structure**: Describe the approach or structure used in presenting the information. How is the content organized and why is this organization effective?
 
-                • **Major Findings**: What are the most significant and novel results? How do these findings advance our understanding beyond previous work?
+                • **Major Points/Findings**: What are the most significant and important points or discoveries presented? How do these advance understanding of the subject?
 
-                • **Practical Implications**: How can these findings be applied in practice? What are the real-world implications for practitioners, policymakers, or future research?
+                • **Practical Applications**: How can this information be applied in practice? What are the real-world implications for students, practitioners, or future learning?
 
-                • **Limitations**: What are the key limitations explicitly mentioned or implicitly evident? How do these limitations affect the interpretation and generalizability of results?
+                • **Key Takeaways**: What are the essential points that readers should remember? What makes this content valuable for academic study?
 
-                Write with the sophistication expected of a senior researcher. Use precise academic language while remaining accessible. Demonstrate critical thinking and contextual understanding.
+                Write with academic sophistication while remaining accessible. Use precise language appropriate for {doc_context}. Demonstrate critical thinking and contextual understanding.
                 Limit to 400-500 words.
 
-                RESEARCH PAPER TEXT:
-                {paper_text[:8000]}
+                {doc_name.upper()} TEXT:
+                {{paper_text[:8000]}}
                 """
                 
                 response = self.client.chat.completions.create(
@@ -391,39 +460,39 @@ class GroqAnalyzer:
             
             # Sophisticated methodology analysis
             if analysis_options.get('methodology', False):
-                methodology_prompt = f"""
-                As a methodological expert and research design specialist, provide a comprehensive analysis of this study's methodology. Your analysis should demonstrate deep understanding of research design principles and methodological rigor.
+                # Adjust methodology prompt based on document type
+                if document_type == '🔬 Research Paper':
+                    methodology_prompt = f"""
+                    As a methodological expert and research design specialist, provide a comprehensive analysis of this research paper's methodology. Your analysis should demonstrate deep understanding of research design principles and methodological rigor.
 
-                🔬 METHODOLOGY ANALYSIS:
+                    🔬 METHODOLOGY ANALYSIS:
 
-                **Research Design**: What type of study/experiment is this? Evaluate the appropriateness of the design for addressing the research question. Consider whether alternative designs might have been more suitable.
+                    **Research Design**: What type of study/experiment is this? Evaluate the appropriateness of the design for addressing the research question.
+                    **Data Collection**: Analyze the data collection methods, instruments, and procedures used.
+                    **Sample/Participants**: Examine the sample characteristics, size, and selection methods.
+                    **Variables and Measurements**: Identify and analyze key variables and how they were measured.
+                    **Statistical Analysis**: Evaluate the statistical methods used and their appropriateness.
+                    **Validity and Limitations**: Assess internal/external validity and methodological limitations.
 
-                **Data Collection**: Analyze the data collection methods in detail. What instruments, procedures, or techniques were used? Evaluate their validity and reliability. Were there any potential sources of bias in data collection?
+                    {doc_name.upper()} TEXT:
+                    {paper_text[:8000]}
+                    """
+                else:
+                    methodology_prompt = f"""
+                    As an educational content expert, provide a comprehensive analysis of how this {doc_name} presents and organizes information. Your analysis should focus on pedagogical approach and content structure.
 
-                **Sample/Participants**: Examine the sample characteristics, size, and selection methods. Is the sample representative of the target population? What are the implications of the sampling approach for generalizability?
+                    📚 CONTENT APPROACH ANALYSIS:
 
-                **Variables and Measurements**: Identify and analyze the independent, dependent, and control variables. How were key constructs operationalized and measured? Evaluate the quality of these measurements.
+                    **Content Organization**: How is the information structured and organized? What pedagogical approach is used?
+                    **Learning Objectives**: What key concepts or skills does this material aim to teach?
+                    **Presentation Methods**: What methods are used to present information (examples, diagrams, exercises, etc.)?
+                    **Difficulty Level**: What is the appropriate academic level for this content?
+                    **Educational Value**: How effective is this material for learning and understanding the subject?
+                    **Key Strengths**: What makes this {doc_name} particularly effective or valuable?
 
-                **Controls and Confounds**: What controls were implemented to address potential confounding variables? Were there uncontrolled factors that could have influenced the results?
-
-                **Statistical Analysis**: Evaluate the statistical methods used. Were they appropriate for the data type and research design? Were assumptions met? Were effect sizes reported?
-
-                **Validity Assessment**: 
-                - **Internal Validity**: To what extent can we be confident that the observed effects are due to the manipulated variables rather than other factors?
-                - **External Validity**: How generalizable are these findings to other populations, settings, or conditions?
-                - **Construct Validity**: How well do the measures capture the intended theoretical constructs?
-
-                **Reproducibility**: Could this study be replicated by other researchers? What information is provided to enable replication?
-
-                **Methodology Strength Rating**: Provide an overall rating (1-5 scale) of the methodological rigor with detailed justification.
-
-                **Suggested Improvements**: What specific methodological improvements could strengthen future research in this area?
-
-                Demonstrate expertise in research methodology. Be critical but fair, acknowledging both strengths and limitations.
-
-                RESEARCH PAPER TEXT:
-                {paper_text[:10000]}
-                """
+                    {doc_name.upper()} TEXT:
+                    {paper_text[:8000]}
+                    """
                 
                 response = self.client.chat.completions.create(
                     model=self.model_name,
