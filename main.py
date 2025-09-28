@@ -492,7 +492,7 @@ def main():
                     include_questions = st.checkbox("❓ Generate Research Questions", value=True)
                 with col2:
                     include_gaps = st.checkbox("� Identify Research Gaps", value=True)
-                    include_future_work = st.checkbox("🔮 Future Research Directions", value=False)
+                    include_future_work = st.checkbox("🔮 Future Research Directions", value=True)
                 
             elif document_type in ["📚 Textbook Chapter", "📝 Lecture Notes", "🗒️ Class Handout"]:
                 st.markdown("**Study Material Specific:**")
