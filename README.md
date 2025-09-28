@@ -65,14 +65,14 @@ Turn class materials into effective study resources:
 
 ### Prerequisites
 - Python 3.11 or higher
-- Google Gemini API key ([Get one here](https://aistudio.google.com/app/apikey))
+- Groq API key ([Get one here](https://console.groq.com/keys))
 
 ### Installation
 
 ```bash
 # Clone the repository
-git clone https://github.com/AndrewPuig77/AI-Research-Paper-analyst.git
-cd AI-Research-Paper-analyst
+git clone https://github.com/AndrewPuig77/AI-Academic-Assistant-groq-.git
+cd AI-Academic-Assistant-groq-
 
 # Create virtual environment
 python -m venv .venv
@@ -88,20 +88,20 @@ pip install -r requirements.txt
 
 # Set up your API key
 cp .env.example .env
-# Edit .env and add your Google API key
+# Edit .env and add your Groq API key
 ```
 
 ### Configuration
 
-1. **Get Your Google Gemini API Key**
-   - Visit [Google AI Studio](https://aistudio.google.com/app/apikey)
+1. **Get Your Groq API Key**
+   - Visit [Groq Console](https://console.groq.com/keys)
    - Create a new API key (FREE tier available!)
    - Copy the key
 
 2. **Configure the Application**
    ```bash
    # Edit the .env file
-   GOOGLE_API_KEY=your_actual_api_key_here
+   GROQ_API_KEY=your_actual_api_key_here
    ```
 
 ### Run the Application
