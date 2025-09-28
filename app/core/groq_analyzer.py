@@ -428,22 +428,31 @@ class GroqAnalyzer:
             # Generate sophisticated summary if requested
             if analysis_options.get('summary', False):
                 summary_prompt = f"""
-                As an expert academic analyst with deep expertise in {doc_context}, provide a comprehensive but concise summary of this {doc_name}. Your analysis should demonstrate sophisticated understanding of the subject matter.
+                As an expert academic analyst, create a comprehensive, student-friendly analysis of this {doc_name}. Format your response with clear structure and educational value.
 
-                📋 CONTENT SUMMARY:
+                ## � EXECUTIVE SUMMARY
 
-                • **Main Topic/Focus**: What specific topic or subject does this {doc_name} address? What makes this content significant in the broader academic field?
+                **Topic/Subject**: Clearly identify the main topic or subject matter. What specific concepts, theories, or areas does this {doc_name} address?
 
-                • **Key Approach/Structure**: Describe the approach or structure used in presenting the information. How is the content organized and why is this organization effective?
+                **Key Concepts**: List and explain the 3-5 most important concepts, theories, or ideas presented. For each concept:
+                - Provide a clear definition
+                - Explain its significance
+                - Give practical context
 
-                • **Major Points/Findings**: What are the most significant and important points or discoveries presented? How do these advance understanding of the subject?
+                **Learning Objectives**: What should students be able to understand or do after studying this material? List 4-6 specific learning outcomes.
 
-                • **Practical Applications**: How can this information be applied in practice? What are the real-world implications for students, practitioners, or future learning?
+                **Content Structure**: How is the information organized? What approach does the author take to present the material?
 
-                • **Key Takeaways**: What are the essential points that readers should remember? What makes this content valuable for academic study?
+                **Practical Applications**: How can this knowledge be applied in real-world situations? What are the practical implications for:
+                - Students in their studies
+                - Professionals in the field  
+                - Future learning and development
 
-                Write with academic sophistication while remaining accessible. Use precise language appropriate for {doc_context}. Demonstrate critical thinking and contextual understanding.
-                Limit to 400-500 words.
+                **Prerequisites**: What background knowledge would help students better understand this material?
+
+                **Key Takeaways**: What are the 3-4 most essential points students should remember from this {doc_name}?
+
+                Format with clear headings, bullet points, and educational language. Make it comprehensive but accessible to students.
 
                 {doc_name.upper()} TEXT:
                 {paper_text[:8000]}
@@ -558,40 +567,45 @@ class GroqAnalyzer:
             # Keywords and concepts extraction
             if analysis_options.get('keywords', False):
                 keywords_prompt = f"""
-                As a research librarian and subject matter expert, extract and categorize key terms and concepts from this research paper. Your analysis should facilitate literature searches and demonstrate deep understanding of the research domain.
+                As an expert educator and content analyst, extract and categorize all key terms and concepts from this {doc_name}. Format your response like a comprehensive study vocabulary list.
 
-                🏷️ RESEARCH KEYWORDS:
+                ## 🏷️ KEY TERMS & CONCEPTS
 
-                **Primary Keywords** (5-7 terms):
-                The most important terms that capture the core focus of this research. These should be terms that researchers in this field would immediately recognize as central.
+                **Essential Terms**: List and define the 10-15 most important terms that students absolutely must understand. For each term, provide:
+                - Clear, student-friendly definition
+                - Context of how it's used in the material
+                - Why it's important to understand
 
-                **Technical Terminology** (8-12 terms):
-                Specialized terms, methodological concepts, and domain-specific vocabulary that are essential for understanding this research.
+                **Concept Names**: Identify 8-12 specific concepts, theories, or frameworks mentioned. Explain:
+                - What each concept represents
+                - How it relates to the main topic
+                - Any examples or applications provided
 
-                **Theoretical Concepts** (5-8 terms):
-                Underlying theories, frameworks, and conceptual approaches that inform this research.
+                **Technical Terms**: List 10-15 specialized vocabulary terms with:
+                - Precise definitions
+                - Technical context
+                - Related terms or synonyms
 
-                **Methodological Terms** (5-8 terms):
-                Research methods, analytical techniques, and methodological approaches used in this study.
+                **Study Terms**: Identify terms that are crucial for:
+                - Exams and assessments
+                - Further learning in this subject
+                - Practical application
 
-                **Field-Specific Language** (5-10 terms):
-                Discipline-specific terminology that situates this research within its broader academic field.
+                **Context Clues**: For complex terms, provide:
+                - Examples from the text that help understand the meaning
+                - Related terms that provide context
+                - Common misconceptions to avoid
 
-                **Related Research Areas** (5-7 areas):
-                Adjacent fields or research domains that connect to this work.
+                **Acronyms and Abbreviations**: List any acronyms with full expansions and explanations.
 
-                **Search Strategy Recommendations**:
-                - Suggest optimal database search terms for finding related literature
-                - Provide Boolean search combinations that would be most effective
-                - Recommend MeSH terms or subject headings where applicable
+                **Cross-References**: Identify terms that connect to:
+                - Other chapters or sections
+                - Related subjects or courses
+                - Real-world applications
 
-                **Conceptual Hierarchy**:
-                Organize the key concepts into a hierarchical structure showing relationships between broader and more specific terms.
+                Format each section clearly with bullet points and comprehensive explanations that would help students create effective study materials.
 
-                **Alternative Terminology**:
-                List alternative terms or synonyms that might be used in the literature to refer to the same concepts.
-
-                RESEARCH PAPER TEXT:
+                {doc_name.upper()} TEXT:
                 {paper_text[:8000]}
                 """
                 
