@@ -1,20 +1,16 @@
 """
 Academic AI Assistant - Main Streamlit Application
-A powerful tool for analyzing research papers and class materials using Groq's LLM API
-Supporting both research analysis and student study tools - FREE with 14,400 requests/day!
+A powerful tool for analyzing research papers and class materials using Groq's AI
+Supporting both research analysis and student study tools
 """
 
 import streamlit as st
 import os
 import json
 import re
-import logging
 from datetime import datetime
 from pathlib import Path
 from dotenv import load_dotenv
-
-# Configure logging
-logger = logging.getLogger(__name__)
 
 # Load environment variables
 load_dotenv()
@@ -27,7 +23,7 @@ from app.utils.report_generator import AdvancedReportGenerator
 
 # Page configuration
 st.set_page_config(
-    page_title="Academic AI Assistant - Groq Edition",
+    page_title="Academic AI Assistant",
     page_icon="🎓",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -433,7 +429,6 @@ def main():
     
     if not api_key or api_key == "your_groq_api_key_here":
         st.error("⚠️ Please configure your Groq API key in Streamlit secrets or .env file")
-        st.info("💡 Get your free API key at: https://console.groq.com/")
         st.stop()
     
     # Main content area
@@ -492,7 +487,7 @@ def main():
                     include_questions = st.checkbox("❓ Generate Research Questions", value=True)
                 with col2:
                     include_gaps = st.checkbox("� Identify Research Gaps", value=True)
-                    include_future_work = st.checkbox("🔮 Future Research Directions", value=True)
+                    include_future_work = st.checkbox("🔮 Future Research Directions", value=False)
                 
             elif document_type in ["📚 Textbook Chapter", "📝 Lecture Notes", "🗒️ Class Handout"]:
                 st.markdown("**Study Material Specific:**")
@@ -588,20 +583,14 @@ def main():
                     # Step 2: Save uploaded file
                     status_text.text("💾 Saving uploaded file...")
                     progress_bar.progress(20)
-                    
-                    # Create uploads directory if it doesn't exist
-                    uploads_dir = Path("uploads")
-                    uploads_dir.mkdir(exist_ok=True)
-                    
-                    # Use absolute path for the uploaded file
-                    temp_path = uploads_dir / uploaded_file.name
+                    temp_path = f"uploads/{uploaded_file.name}"
                     with open(temp_path, "wb") as f:
                         f.write(uploaded_file.read())
                     
                     # Step 3: Extract text from document
                     status_text.text("📄 Extracting text from document...")
                     progress_bar.progress(40)
-                    extracted_text = document_processor.extract_text(str(temp_path))
+                    extracted_text = document_processor.extract_text(temp_path)
                     
                     # Step 4: Prepare analysis options
                     status_text.text("⚙️ Configuring analysis options...")
@@ -645,10 +634,7 @@ def main():
                     # Step 7: Clean up
                     status_text.text("🧹 Cleaning up temporary files...")
                     progress_bar.progress(100)
-                    try:
-                        os.remove(str(temp_path))
-                    except Exception as e:
-                        logger.warning(f"Could not remove temporary file: {e}")
+                    os.remove(temp_path)
                     
                     # Clear progress indicators
                     progress_bar.empty()
@@ -1195,7 +1181,7 @@ def main():
         
         st.markdown("""
         ### 🎯 Purpose
-        This tool leverages Groq's LLM API to provide comprehensive analysis of research papers AND class materials,
+        This tool leverages Groq's powerful AI to provide comprehensive analysis of research papers AND class materials,
         helping researchers, students, and academics quickly understand complex documents and create effective study materials.
         
         ### 🚀 Key Features
@@ -1203,7 +1189,7 @@ def main():
         
         features_detail = {
             "📄 Smart PDF Processing": "Advanced text extraction from research papers and class materials with structure preservation",
-            "🧠 Intelligent Analysis": "AI-powered content analysis using Groq's language understanding",
+            "🧠 Intelligent Analysis": "AI-powered content analysis using Groq's advanced language models",
             "📊 Methodology Breakdown": "Detailed extraction and explanation of research methods and procedures",
             "🔗 Citation Network": "Automatic extraction of references and citation relationships",
             "🔍 Research Gap Identification": "AI identification of unexplored areas and future research directions",
@@ -1226,21 +1212,21 @@ def main():
         st.markdown("""
         ### � Free Tier Information
         
-        **This application uses Google Gemini's generous free tier:**
+        **This application uses Groq's generous free tier:**
         
-        - ✨ **Gemini 1.5 Flash**: 1,500 requests per day (likely what you're using)
-        - 🧠 **Gemini 2.5 Pro**: 100 requests per day  
-        - 📊 **Analysis Capacity**: Analyze 250-500 research papers daily!
+        - ✨ **Llama 3.1 8B Instant**: 14,400 requests per day (what you're using)
+        - 🧠 **Ultra-Fast Processing**: Lightning-fast response times
+        - 📊 **Analysis Capacity**: Analyze 2,400+ documents daily!
         - 🔄 **Usage**: Each analysis uses 3-6 API requests depending on options selected
         - ⏰ **Reset**: Quota resets daily at midnight UTC
         
-        **Model Selection**: The app automatically selects the best available model for optimal performance.
+        **Model Selection**: The app uses Groq's optimized Llama models for maximum performance.
         
         ---
         
         ### �🛠️ Technology Stack
         - **Frontend**: Streamlit web framework with sleek black theme
-        - **AI Engine**: Google Gemini AI (1.5/2.0 Flash models)
+        - **AI Engine**: Groq AI (Llama 3.1 8B Instant model)
         - **PDF Processing**: PyMuPDF (fitz) for text extraction
         - **Data Visualization**: Plotly, Matplotlib, Seaborn, WordCloud
         - **Data Analysis**: Pandas, NumPy for data manipulation
