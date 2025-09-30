@@ -619,7 +619,7 @@ def main():
                     }
                     
                     # Step 5: AI Analysis (longest step)
-                    status_text.text("🧠 Analyzing with Groq AI... (this may take a moment)")
+                    status_text.text("🧠 Analyzing with Groq AI... (this may take 1-5 minutes)")
                     progress_bar.progress(60)
                     analysis_results = analyzer.analyze_paper(extracted_text, analysis_options)
                     progress_bar.progress(85)
@@ -993,37 +993,80 @@ def main():
                     flashcards_text = st.session_state['study_flashcards']
                     
                     try:
-                        # Try to parse JSON flashcards
-                        import json
                         import re
                         
-                        # Extract JSON from response
-                        json_match = re.search(r'\[(.*?)\]', flashcards_text, re.DOTALL)
-                        if json_match:
-                            json_str = '[' + json_match.group(1) + ']'
-                            flashcards = json.loads(json_str)
-                            
-                            st.success(f"📊 Generated {len(flashcards)} flashcards")
+                        # Try to parse the new structured format first
+                        card_pattern = r'\*\*FLASHCARD #(\d+):(.*?)\*\*\s*\n\s*\*\*FRONT:\*\*(.*?)\n\s*\*\*BACK:\*\*(.*?)(?=\n\s*---|\n\s*\*\*FLASHCARD|\Z)'
+                        cards_found = re.findall(card_pattern, flashcards_text, re.DOTALL | re.IGNORECASE)
+                        
+                        if cards_found:
+                            st.success(f"📊 Generated {len(cards_found)} flashcards")
                             
                             # Display flashcards in an interactive format
-                            for i, card in enumerate(flashcards, 1):
-                                col1, col2 = st.columns(2)
-                                with col1:
-                                    st.markdown(f"**Card {i} - Front:**")
-                                    st.info(card.get('front', 'No front text'))
-                                with col2:
-                                    st.markdown(f"**Card {i} - Back:**")
-                                    st.success(card.get('back', 'No back text'))
+                            for i, (card_num, card_type, front, back) in enumerate(cards_found, 1):
+                                # Clean up the extracted text
+                                card_type = card_type.strip()
+                                front_text = front.strip()
+                                back_text = back.strip()
                                 
-                                if i < len(flashcards):
-                                    st.markdown("---")
+                                # Create expandable flashcard
+                                with st.container():
+                                    st.markdown(f"### 🃏 **Flashcard #{card_num}** - {card_type}")
+                                    
+                                    col1, col2 = st.columns(2)
+                                    with col1:
+                                        st.markdown("**📝 FRONT (Question/Term):**")
+                                        with st.container():
+                                            st.info(front_text)
+                                    
+                                    with col2:
+                                        st.markdown("**💡 BACK (Answer/Definition):**")
+                                        with st.container():
+                                            st.success(back_text)
+                                    
+                                    if i < len(cards_found):
+                                        st.markdown("---")
+                        
                         else:
-                            st.markdown("**Raw Flashcards:**")
-                            st.markdown(flashcards_text)
+                            # Fall back to JSON parsing for backward compatibility
+                            import json
+                            json_match = re.search(r'\[(.*?)\]', flashcards_text, re.DOTALL)
+                            if json_match:
+                                json_str = '[' + json_match.group(1) + ']'
+                                flashcards = json.loads(json_str)
+                                
+                                st.success(f"📊 Generated {len(flashcards)} flashcards")
+                                
+                                # Display flashcards in an interactive format
+                                for i, card in enumerate(flashcards, 1):
+                                    col1, col2 = st.columns(2)
+                                    with col1:
+                                        st.markdown(f"**Card {i} - Front:**")
+                                        st.info(card.get('front', 'No front text'))
+                                    with col2:
+                                        st.markdown(f"**Card {i} - Back:**")
+                                        st.success(card.get('back', 'No back text'))
+                                    
+                                    if i < len(flashcards):
+                                        st.markdown("---")
+                            else:
+                                # Display as formatted text if no structured format found
+                                st.markdown("**📇 Generated Flashcards:**")
+                                
+                                # Try to make it more readable
+                                formatted_text = flashcards_text.replace("**FRONT:**", "\n**📝 FRONT:**")
+                                formatted_text = formatted_text.replace("**BACK:**", "\n**💡 BACK:**")
+                                formatted_text = formatted_text.replace("---", "\n\n---\n")
+                                
+                                st.markdown(formatted_text)
                             
                     except Exception as e:
-                        st.markdown("**Generated Flashcards:**")
-                        st.markdown(flashcards_text)
+                        st.markdown("**📇 Generated Flashcards:**")
+                        # Clean display even if parsing fails
+                        formatted_text = flashcards_text.replace("**FRONT:**", "\n**📝 FRONT:**")
+                        formatted_text = formatted_text.replace("**BACK:**", "\n**💡 BACK:**")
+                        formatted_text = formatted_text.replace("---", "\n\n---\n")
+                        st.markdown(formatted_text)
             
             # Practice Questions Display
             if 'study_questions' in st.session_state:
@@ -1210,6 +1253,12 @@ def main():
             st.markdown("---")
         
         st.markdown("""
+        ### ⚠️ **Important Usage Note**
+        
+        **🔒 VPN Warning**: For optimal performance, please **disable your VPN** while using this application. VPNs can interfere with API connectivity and may cause analysis failures or timeouts.
+        
+        ---
+        
         ### � Free Tier Information
         
         **This application uses Groq's generous free tier:**
