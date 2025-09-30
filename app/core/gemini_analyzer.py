@@ -40,51 +40,10 @@ class GeminiAnalyzer:
                 f"Extract and describe important examples or case studies from this {material_type} material.\n\nCONTENT:\n{content[:4000]}",
                 operation_name="examples extraction"
             )
-            # Study Questions
-            results['questions'] = self.create_practice_questions(content)
-            # Difficulty Assessment
-            results['difficulty'] = self._make_api_call_with_retry(
-                f"Assess the difficulty level of this {material_type} material for students.\n\nCONTENT:\n{content[:4000]}",
-                operation_name="difficulty assessment"
-            )
-            # Keywords
-            results['keywords'] = self._make_api_call_with_retry(
-                self._get_keywords_prompt(content, material_type),
-                operation_name="keywords extraction"
-            )
-            # Study Guide
-            results['study_guide'] = self.build_study_guide(content)
-            # Flashcards
-            results['study_flashcards'] = self.generate_flashcards(content)
             return results
         except Exception as e:
-            logger.error(f"Error analyzing class material: {e}")
-            return {"error": str(e)}
-    """
-    Handles analysis of research papers using Google's Gemini AI.
-    Provides specialized prompts and analysis functions for academic content.
-    """
-    
-    def __init__(self, model_name: str = "gemini-2.5-flash"):
-        """
-        Initialize Gemini analyzer with API configuration.
-        
-        Args:
-            model_name: Name of the Gemini model to use
-        """
-        self.model_name = model_name
-        
-        # Try to get API key from Streamlit secrets first, then environment
-        self.api_key = None
-        try:
-            import streamlit as st
-            if hasattr(st, 'secrets') and "GOOGLE_API_KEY" in st.secrets:
-                self.api_key = st.secrets["GOOGLE_API_KEY"]
-                logger.info("Found GOOGLE_API_KEY in Streamlit secrets")
-        except Exception as e:
-            logger.debug(f"Could not access Streamlit secrets: {e}")
-        
-        # Fallback to environment variable if not found in secrets
+            logger.error(f"Error during study material analysis: {str(e)}")
+            raise Exception(f"Analysis failed: {str(e)}")
         if not self.api_key:
             self.api_key = os.getenv("GOOGLE_API_KEY")
             if self.api_key:
