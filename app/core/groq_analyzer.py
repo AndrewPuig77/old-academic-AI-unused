@@ -1738,32 +1738,54 @@ class GroqAnalyzer:
             prompt = f"""
             Create 15-20 high-quality flashcards based on this academic content for effective studying.
 
-            🃏 FLASHCARD CREATION:
+            🃏 FLASHCARD CREATION GUIDELINES:
 
-            **Format for each flashcard**:
-            **Card #**: [Front] | [Back]
+            **Format Requirements**:
+            - Use clear section headers for organization
+            - Number each flashcard clearly
+            - Separate FRONT and BACK content distinctly
+            - Make content easy to read and study from
+
+            **Structure each flashcard as**:
+            ---
+            **FLASHCARD #[number]: [Card Type]**
+            
+            **FRONT:** [Clear question or term]
+            
+            **BACK:** [Complete, concise answer with key details]
+            ---
 
             **Types of flashcards to create**:
-            1. **Definition Cards** (5-7 cards): Key terms and their definitions
-            2. **Concept Cards** (4-5 cards): Important concepts and explanations
-            3. **Process Cards** (3-4 cards): Steps, procedures, or methodologies
+            1. **Definition Cards** (6-8 cards): Key terms and their precise definitions
+            2. **Concept Cards** (4-5 cards): Important concepts and explanations  
+            3. **Process Cards** (2-3 cards): Steps, procedures, or methodologies
             4. **Comparison Cards** (2-3 cards): Contrasting ideas or approaches
             5. **Application Cards** (2-3 cards): Examples and real-world applications
 
-            **Quality guidelines**:
-            - Front: Clear, specific question or term
-            - Back: Complete but concise answer
-            - Avoid yes/no questions
-            - Make each card test one concept
-            - Use active recall principles
+            **Quality Standards**:
+            - FRONT: Clear, specific question or term that tests understanding
+            - BACK: Complete but concise answer (2-4 sentences maximum)
+            - Avoid yes/no questions - use "What is...?", "How does...?", "Why...?"
+            - Test one focused concept per card
+            - Use active recall principles for maximum learning effectiveness
+            - Include context when helpful for understanding
 
-            Content: {content[:8000]}
+            **Example Format**:
+            ---
+            **FLASHCARD #1: Definition Card**
+            
+            **FRONT:** What is extended parental care in seabirds?
+            
+            **BACK:** Extended parental care is the provision of food or other resources to offspring after they have fledged, beyond the initial period of dependence. This behavior is rare among seabirds and has been documented in only a few species.
+            ---
+
+            Content to analyze: {content[:8000]}
             """
             
             response = self.client.chat.completions.create(
                 model=self.model_name,
                 messages=[{"role": "user", "content": prompt}],
-                max_tokens=2000,
+                max_tokens=2500,
                 temperature=0.2
             )
             return response.choices[0].message.content
