@@ -15,9 +15,11 @@ from dotenv import load_dotenv
 # Load environment variables
 load_dotenv()
 
-# Import custom modules (will be created next)
+# Import custom modules
 from app.core.document_processor import DocumentProcessor
 from app.core.groq_analyzer import GroqAnalyzer
+from app.core.gemini_analyzer import GeminiAnalyzer
+from app.core.ai_provider_factory import UnifiedAIAnalyzer, create_ai_analyzer
 from app.utils.helpers import format_analysis_results, create_download_link
 from app.utils.report_generator import AdvancedReportGenerator
 
@@ -388,10 +390,70 @@ st.markdown("""
 def main():
     # Main title with modern styling
     st.markdown('<h1 class="main-title">🎓 Academic AI Assistant</h1>', unsafe_allow_html=True)
-    st.markdown('<p class="subtitle">Powered by Groq AI • Research Analysis & Study Tools for Academic Success</p>', unsafe_allow_html=True)
+    st.markdown('<p class="subtitle">Multi-AI Platform • Groq & Gemini • Research Analysis & Study Tools for Academic Success</p>', unsafe_allow_html=True)
     
     # Sidebar with features
     with st.sidebar:
+        # AI Provider Selection
+        st.header("🤖 AI Provider")
+        
+        # Initialize unified AI analyzer in session state
+        if 'ai_analyzer' not in st.session_state:
+            try:
+                st.session_state.ai_analyzer = create_ai_analyzer("groq")  # Default to Groq
+                st.session_state.current_provider = "Groq"
+            except Exception as e:
+                st.error(f"Failed to initialize AI provider: {e}")
+                st.stop()
+        
+        # Provider selector
+        available_providers = st.session_state.ai_analyzer.get_available_providers()
+        provider_status = st.session_state.ai_analyzer.get_provider_status()
+        
+        # Create options with status indicators
+        provider_options = []
+        for provider in available_providers:
+            status_icon = "✅" if provider_status.get(provider, False) else "❌"
+            provider_options.append(f"{status_icon} {provider}")
+        
+        selected_provider_display = st.selectbox(
+            "Choose AI Provider:",
+            provider_options,
+            index=0 if st.session_state.current_provider == "Groq" else 1,
+            help="Switch between Groq and Gemini AI providers. Green checkmark indicates the provider is available."
+        )
+        
+        # Extract actual provider name (remove status icon)
+        selected_provider = selected_provider_display.split(" ", 1)[1]
+        
+        # Handle provider switch
+        if selected_provider != st.session_state.current_provider:
+            with st.spinner(f"Switching to {selected_provider}..."):
+                if st.session_state.ai_analyzer.switch_provider(selected_provider.lower()):
+                    st.session_state.current_provider = selected_provider
+                    st.success(f"Switched to {selected_provider}!")
+                    st.rerun()
+                else:
+                    st.error(f"Failed to switch to {selected_provider}")
+        
+        # Display current provider info
+        analyzer_info = st.session_state.ai_analyzer.get_analyzer_info()
+        st.markdown(f"**Current:** {analyzer_info['provider']} ({analyzer_info['model_name']})")
+        
+        st.markdown("---")
+        # --- Clear Results Button ---
+        st.markdown("## 🧹 Clear Results")
+        if st.button("Clear Results", help="Remove all generated outputs and start fresh.", use_container_width=True):
+            keys_to_clear = [
+                'analysis_results', 'analyzed_content', 'paper_name',
+                'study_flashcards', 'study_questions', 'study_guide', 'material_analysis'
+            ]
+            for k in keys_to_clear:
+                if k in st.session_state:
+                    del st.session_state[k]
+            st.success("Results cleared!")
+            st.experimental_rerun()
+        
         st.header("🎯 AI Analysis Features")
         features = [
             "📄 Smart PDF Processing",
@@ -406,9 +468,9 @@ def main():
             "📊 Difficulty Assessment",
             "🏗️ Structure Analysis",
             "💭 Argument Analysis",
-            "� Findings & Recommendations",
-            "� Research Gap Identification",
-            "� Future Research Directions",
+            "📈 Findings & Recommendations",
+            "🔍 Research Gap Identification",
+            "🔮 Future Research Directions",
             "🏷️ Keyword & Term Extraction",
             "📋 Comprehensive Reporting"
         ]
@@ -578,7 +640,7 @@ def main():
                     status_text.text("🔧 Initializing AI processors...")
                     progress_bar.progress(10)
                     document_processor = DocumentProcessor()
-                    analyzer = GroqAnalyzer()
+                    analyzer = st.session_state.ai_analyzer
                     
                     # Step 2: Save uploaded file
                     status_text.text("💾 Saving uploaded file...")
@@ -774,27 +836,27 @@ def main():
             with col1:
                 if st.button("🔍 Find Related Papers", use_container_width=True):
                     with st.spinner("🔍 Analyzing research landscape..."):
-                        analyzer = GroqAnalyzer()
-                        related_papers = analyzer.suggest_related_papers(st.session_state.analyzed_content)
+                        analyzer = st.session_state.ai_analyzer
+                        related_papers = analyzer.get_analyzer().suggest_related_papers(st.session_state.analyzed_content)
                         st.session_state['related_papers'] = related_papers
                 
                 if st.button("❓ Generate Research Questions", use_container_width=True):
                     with st.spinner("❓ Generating research questions..."):
-                        analyzer = GroqAnalyzer()
-                        research_questions = analyzer.generate_research_questions(st.session_state.analyzed_content)
+                        analyzer = st.session_state.ai_analyzer
+                        research_questions = analyzer.get_analyzer().generate_research_questions(st.session_state.analyzed_content)
                         st.session_state['research_questions'] = research_questions
             
             with col2:
                 if st.button("💡 Build New Hypotheses", use_container_width=True):
                     with st.spinner("💡 Building hypotheses..."):
-                        analyzer = GroqAnalyzer()
-                        hypotheses = analyzer.build_hypotheses(st.session_state.analyzed_content)
+                        analyzer = st.session_state.ai_analyzer
+                        hypotheses = analyzer.get_analyzer().build_hypotheses(st.session_state.analyzed_content)
                         st.session_state['hypotheses'] = hypotheses
                 
                 if st.button("📋 Draft Research Proposal", use_container_width=True):
                     with st.spinner("📋 Drafting research proposal..."):
-                        analyzer = GroqAnalyzer()
-                        proposal = analyzer.generate_research_proposal(st.session_state.analyzed_content)
+                        analyzer = st.session_state.ai_analyzer
+                        proposal = analyzer.get_analyzer().generate_research_proposal(st.session_state.analyzed_content)
                         st.session_state['research_proposal'] = proposal
             
             # Display results
@@ -909,7 +971,7 @@ def main():
                 if st.button("📇 Generate Flashcards", use_container_width=True):
                     with st.spinner("🧠 Creating educational flashcards..."):
                         try:
-                            analyzer = GroqAnalyzer()
+                            analyzer = st.session_state.ai_analyzer
                             flashcards_result = analyzer.generate_flashcards(analyzed_content)
                             
                             st.session_state['study_flashcards'] = flashcards_result
@@ -921,7 +983,7 @@ def main():
                 if st.button("❓ Create Practice Questions", use_container_width=True):
                     with st.spinner("📝 Creating practice questions..."):
                         try:
-                            analyzer = GroqAnalyzer()
+                            analyzer = st.session_state.ai_analyzer
                             
                             # Question type selection
                             question_types = st.multiselect(
@@ -945,7 +1007,7 @@ def main():
                 if st.button("📖 Build Study Guide", use_container_width=True):
                     with st.spinner("📚 Building comprehensive study guide..."):
                         try:
-                            analyzer = GroqAnalyzer()
+                            analyzer = st.session_state.ai_analyzer
                             
                             # Get topic name from user or use filename
                             topic_name = st.text_input(
@@ -966,7 +1028,7 @@ def main():
                 if st.button("📊 Analyze Material", use_container_width=True):
                     with st.spinner("🔍 Analyzing class material..."):
                         try:
-                            analyzer = GroqAnalyzer()
+                            analyzer = st.session_state.ai_analyzer
                             
                             material_type = st.selectbox(
                                 "Material type:",
@@ -974,7 +1036,7 @@ def main():
                                 key="material_type_selector"
                             )
                             
-                            analysis_result = analyzer.analyze_class_material(
+                            analysis_result = analyzer.get_analyzer().analyze_class_material(
                                 analyzed_content, material_type
                             )
                             st.session_state['material_analysis'] = analysis_result
