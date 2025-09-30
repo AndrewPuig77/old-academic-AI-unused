@@ -453,7 +453,7 @@ def main():
                             st.session_state[k] = None
                     st.success(f"Switched to {selected_provider}!")
                     try:
-                        st.experimental_rerun()
+                        st.rerun()
                     except AttributeError as rerun_error:
                         st.error(f"Rerun error: {rerun_error}")
                         # Optionally log or handle further
@@ -476,7 +476,7 @@ def main():
                 if k in st.session_state:
                     del st.session_state[k]
             st.success("Results cleared!")
-            st.experimental_rerun()
+            st.rerun()
         
         st.header("🎯 AI Analysis Features")
         features = [
