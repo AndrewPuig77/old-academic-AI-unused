@@ -946,11 +946,6 @@ def main():
             - Organized topic summaries
             - Key concept hierarchies
             - Quick review checklists
-            
-            **📊 Material Analysis**
-            - Difficulty assessment
-            - Study recommendations
-            - Exam focus predictions
             """)
         else:
             # Material has been analyzed - show study tools
@@ -1022,42 +1017,7 @@ def main():
                         except Exception as e:
                             st.error(f"❌ Error building study guide: {str(e)}")
                 
-                if st.button("📊 Analyze Material", use_container_width=True):
-                    with st.spinner("🔍 Analyzing class material..."):
-                        try:
-                            analyzer = st.session_state.ai_analyzer
-                            # Use original document_type if available
-                            # Always match material_type to document_type selected in Upload & Analyze
-                            material_type = st.session_state.get('analysis_options', {}).get('document_type', '📚 Textbook Chapter')
-                            # Rebuild analysis_options from UI selections
-                            analysis_options = {
-                                'document_type': material_type,
-                                'summary': st.checkbox("📝 Generate Summary", value=True, key="study_summary"),
-                                'keywords': st.checkbox("🏷️ Extract Keywords", value=True, key="study_keywords"),
-                                'detailed': st.checkbox("📋 Detailed Analysis", value=True, key="study_detailed"),
-                                'concepts': st.checkbox("🎯 Key Concepts", value=True, key="study_concepts"),
-                                'examples': st.checkbox("💡 Examples & Cases", value=True, key="study_examples"),
-                                'questions': st.checkbox("❓ Generate Study Questions", value=True, key="study_questions"),
-                                'difficulty': st.checkbox("📊 Assess Difficulty Level", value=False, key="study_difficulty"),
-                                'structure': st.checkbox("🏗️ Structure Analysis", value=True, key="study_structure"),
-                                'arguments': st.checkbox("💭 Key Arguments", value=True, key="study_arguments"),
-                                'improvements': st.checkbox("✨ Improvement Suggestions", value=False, key="study_improvements"),
-                                'findings': st.checkbox("📈 Key Findings", value=True, key="study_findings"),
-                                'recommendations': st.checkbox("💡 Recommendations", value=True, key="study_recommendations"),
-                                'main_points': st.checkbox("🎯 Main Points", value=True, key="study_main_points"),
-                                'context': st.checkbox("🌍 Context Analysis", value=False, key="study_context"),
-                                'citations': st.checkbox("📚 References", value=False, key="study_citations"),
-                                'methodology': False,
-                                'gaps': False,
-                                'future_work': False
-                            }
-                            analysis_result = analyzer.get_analyzer().analyze_class_material(
-                                analyzed_content, analysis_options, material_type
-                            )
-                            st.session_state['material_analysis'] = analysis_result
-                            st.success("🎯 Material analysis complete!")
-                        except Exception as e:
-                            st.error(f"❌ Error analyzing material: {str(e)}")
+                # The Analyze Material button is now invisible and cannot be clicked by anyone
             
             # Display Results Section
             st.markdown("---")
@@ -1163,8 +1123,12 @@ def main():
                         st.markdown(f"**Content Length:** {analysis_data.get('content_length', 0)} characters")
                         st.markdown("**Analysis:**")
                         st.markdown(analysis_data.get('analysis', 'No analysis available'))
-                    else:
-                        st.markdown(analysis_data)
+                    elif isinstance(analysis_data, str):
+                        # If error string, display as error
+                        if analysis_data.lower().startswith('error') or analysis_data.lower().startswith('analysis failed'):
+                            st.error(analysis_data)
+                        else:
+                            st.markdown(analysis_data)
             
             # Export Section
             if any(key in st.session_state for key in ['study_flashcards', 'study_questions', 'study_guide', 'material_analysis']):
@@ -1279,11 +1243,12 @@ def main():
                         
                         if 'material_analysis' in st.session_state:
                             combined_content += "MATERIAL ANALYSIS\n" + "=" * 20 + "\n"
-                            analysis_data = st.session_state['material_analysis']
-                            if isinstance(analysis_data, dict):
-                                combined_content += analysis_data.get('analysis', 'No analysis available')
-                            else:
-                                combined_content += str(analysis_data)
+                            if 'material_analysis' in st.session_state:
+                                analysis_data = st.session_state['material_analysis']
+                                if isinstance(analysis_data, dict):
+                                    combined_content += analysis_data.get('analysis', 'No analysis available')
+                                else:
+                                    combined_content += str(analysis_data)
                         
                         st.download_button(
                             label="💾 Download Complete Study Package.txt",
@@ -1320,7 +1285,6 @@ def main():
             "📇 Smart Flashcards": "Extract key definitions and concepts from class materials for active recall studying",
             "🎯 Practice Questions": "Generate multiple choice, short answer, and essay questions from course content",
             "📚 Study Guides": "Create comprehensive study guides with organized topics, summaries, and review checklists",
-            "📊 Material Analysis": "Analyze difficulty levels, study recommendations, and exam focus predictions for class materials"
         }
         
         for feature, description in features_detail.items():
