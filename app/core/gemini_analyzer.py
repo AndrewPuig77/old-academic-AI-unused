@@ -19,6 +19,27 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 class GeminiAnalyzer:
+    def __init__(self, model_name: str = None):
+        self.api_key = os.getenv("GOOGLE_API_KEY")
+        if not self.api_key or self.api_key == "your_google_api_key_here":
+            raise ValueError("Please set GOOGLE_API_KEY in Streamlit secrets or .env file")
+        genai.configure(api_key=self.api_key)
+        # Dynamically select a working model
+        available_models = [m.name for m in genai.list_models() if 'generateContent' in m.supported_generation_methods]
+        if not available_models:
+            raise Exception("No Gemini models available for generateContent. Check your API key and quota.")
+        # Prefer flash model if available
+        flash_models = [m for m in available_models if 'flash' in m.lower()]
+        self.model_name = model_name or (flash_models[0] if flash_models else available_models[0])
+        self.model = genai.GenerativeModel(self.model_name)
+        self.generation_config = {
+            'temperature': float(os.getenv('GEMINI_TEMPERATURE', '0.1')),
+            'max_output_tokens': int(os.getenv('GEMINI_MAX_TOKENS', '8192')),
+            'top_p': 0.8,
+            'top_k': 40
+        }
+        logger.info(f"Gemini analyzer initialized with model: {self.model_name}")
+    
     def analyze_class_material(self, content: str, material_type: str = "textbook") -> Dict[str, str]:
         """
         Analyze study material (textbook, lecture notes, handout, etc.) and return key sections.
@@ -44,88 +65,7 @@ class GeminiAnalyzer:
         except Exception as e:
             logger.error(f"Error during study material analysis: {str(e)}")
             raise Exception(f"Analysis failed: {str(e)}")
-        if not self.api_key:
-            self.api_key = os.getenv("GOOGLE_API_KEY")
-            if self.api_key:
-                logger.info("Found GOOGLE_API_KEY in environment variables")
         
-        if not self.api_key or self.api_key == "your_google_api_key_here":
-            raise ValueError("Please set GOOGLE_API_KEY in Streamlit secrets or .env file")
-        
-        # Configure Gemini API
-        genai.configure(api_key=self.api_key)
-        
-        # List available models to debug
-        try:
-            available_models = []
-            for model in genai.list_models():
-                if 'generateContent' in model.supported_generation_methods:
-                    available_models.append(model.name)
-            logger.info(f"Available models: {available_models}")
-            
-            # Use the first available Gemini model if the specified one doesn't work
-            if available_models:
-                # Try to find a flash model first
-                flash_models = [m for m in available_models if 'flash' in m.lower()]
-                if flash_models:
-                    actual_model = flash_models[0]
-                else:
-                    actual_model = available_models[0]
-                logger.info(f"Using model: {actual_model}")
-            else:
-                actual_model = model_name
-                
-        except Exception as e:
-            logger.warning(f"Could not list models: {e}, using default: {model_name}")
-            actual_model = model_name
-        
-        # Initialize model - use exact model name from API
-        try:
-            # Use models that are confirmed to be available based on the list_models output
-            working_models = [
-                "models/gemini-1.5-flash-latest",
-                "models/gemini-2.0-flash-exp",
-                "models/gemini-1.5-flash",
-                "models/gemini-flash-latest"
-            ]
-            
-            for test_model in working_models:
-                try:
-                    self.model = genai.GenerativeModel(test_model)
-                    # Test the model with a very simple prompt to verify it works
-                    test_response = self.model.generate_content(
-                        "Hello", 
-                        generation_config={
-                            'temperature': 0.1,
-                            'max_output_tokens': 5,
-                            'top_p': 0.8,
-                            'top_k': 40
-                        }
-                    )
-                    if test_response and test_response.text:
-                        logger.info(f"Successfully initialized and tested model: {test_model}")
-                        actual_model = test_model
-                        break
-                except Exception as model_error:
-                    logger.warning(f"Model {test_model} failed: {str(model_error)[:200]}")
-                    continue
-            else:
-                raise Exception("No working model found - please check your API key quota")
-                
-        except Exception as e:
-            logger.error(f"Failed to initialize any model: {e}")
-            raise Exception(f"Could not initialize Gemini model: {e}")
-        
-        # Generation configuration
-        self.generation_config = {
-            'temperature': float(os.getenv('GEMINI_TEMPERATURE', '0.1')),
-            'max_output_tokens': int(os.getenv('GEMINI_MAX_TOKENS', '8192')),
-            'top_p': 0.8,
-            'top_k': 40
-        }
-        
-        logger.info(f"Gemini analyzer initialized with model: {actual_model}")
-    
     def _make_api_call_with_retry(self, prompt: str, max_retries: int = 5, operation_name: str = "API call") -> str:
         """
         Make API call with intelligent retry logic for quota errors.
@@ -231,6 +171,95 @@ class GeminiAnalyzer:
                 results['keywords'] = self._make_api_call_with_retry(
                     self._get_keywords_prompt(paper_text, document_type),
                     operation_name="keywords extraction"
+                )
+                time.sleep(1)
+            
+            # Citations
+            if analysis_options.get('citations', False):
+                results['citations'] = self._make_api_call_with_retry(
+                    f"Extract all citations and references from this document.\n\nCONTENT:\n{paper_text[:4000]}",
+                    operation_name="citations extraction"
+                )
+                time.sleep(1)
+            # Concepts
+            if analysis_options.get('concepts', False):
+                results['concepts'] = self._make_api_call_with_retry(
+                    f"List and explain the key concepts in this document.\n\nCONTENT:\n{paper_text[:4000]}",
+                    operation_name="concepts extraction"
+                )
+                time.sleep(1)
+            # Examples
+            if analysis_options.get('examples', False):
+                results['examples'] = self._make_api_call_with_retry(
+                    f"Extract and describe important examples or case studies from this document.\n\nCONTENT:\n{paper_text[:4000]}",
+                    operation_name="examples extraction"
+                )
+                time.sleep(1)
+            # Questions
+            if analysis_options.get('questions', False):
+                results['questions'] = self.create_practice_questions(paper_text)
+                time.sleep(1)
+            # Difficulty
+            if analysis_options.get('difficulty', False):
+                results['difficulty'] = self._make_api_call_with_retry(
+                    f"Assess the difficulty level of this document for students.\n\nCONTENT:\n{paper_text[:4000]}",
+                    operation_name="difficulty assessment"
+                )
+                time.sleep(1)
+            # Structure
+            if analysis_options.get('structure', False):
+                results['structure'] = self._make_api_call_with_retry(
+                    f"Analyze the structure and organization of this document.\n\nCONTENT:\n{paper_text[:4000]}",
+                    operation_name="structure analysis"
+                )
+                time.sleep(1)
+            # Arguments
+            if analysis_options.get('arguments', False):
+                results['arguments'] = self._make_api_call_with_retry(
+                    f"Identify and explain the key arguments presented in this document.\n\nCONTENT:\n{paper_text[:4000]}",
+                    operation_name="arguments analysis"
+                )
+                time.sleep(1)
+            # Improvements
+            if analysis_options.get('improvements', False):
+                results['improvements'] = self._make_api_call_with_retry(
+                    f"Suggest improvements for this document.\n\nCONTENT:\n{paper_text[:4000]}",
+                    operation_name="improvement suggestions"
+                )
+                time.sleep(1)
+            # Findings
+            if analysis_options.get('findings', False):
+                results['findings'] = self._make_api_call_with_retry(
+                    f"Summarize the key findings of this document.\n\nCONTENT:\n{paper_text[:4000]}",
+                    operation_name="findings summary"
+                )
+                time.sleep(1)
+            # Recommendations
+            if analysis_options.get('recommendations', False):
+                results['recommendations'] = self._make_api_call_with_retry(
+                    f"Provide recommendations based on this document.\n\nCONTENT:\n{paper_text[:4000]}",
+                    operation_name="recommendations"
+                )
+                time.sleep(1)
+            # Main Points
+            if analysis_options.get('main_points', False):
+                results['main_points'] = self._make_api_call_with_retry(
+                    f"List the main points covered in this document.\n\nCONTENT:\n{paper_text[:4000]}",
+                    operation_name="main points extraction"
+                )
+                time.sleep(1)
+            # Context
+            if analysis_options.get('context', False):
+                results['context'] = self._make_api_call_with_retry(
+                    f"Analyze the context and background of this document.\n\nCONTENT:\n{paper_text[:4000]}",
+                    operation_name="context analysis"
+                )
+                time.sleep(1)
+            # Detailed Analysis
+            if analysis_options.get('detailed', False):
+                results['detailed'] = self._make_api_call_with_retry(
+                    f"Provide a detailed analysis of this document.\n\nCONTENT:\n{paper_text[:4000]}",
+                    operation_name="detailed analysis"
                 )
                 time.sleep(1)
             
@@ -519,6 +548,62 @@ class GeminiAnalyzer:
         except Exception as e:
             logger.error(f"Error building study guide: {e}")
             return f"Error building study guide: {str(e)}"
+
+    def suggest_related_papers(self, content: str) -> str:
+        """Suggest related research papers based on content."""
+        try:
+            prompt = f"""
+            Suggest 5-10 highly relevant research papers (with titles, authors, and publication years) based on the following content. Focus on recent, high-impact, and closely related work. If possible, include links or DOIs.
+
+            CONTENT:
+            {content[:4000]}
+            """
+            return self._make_api_call_with_retry(prompt, operation_name="related papers suggestion")
+        except Exception as e:
+            logger.error(f"Error suggesting related papers: {e}")
+            return f"Error suggesting related papers: {str(e)}"
+
+    def generate_research_questions(self, content: str) -> str:
+        """Generate research questions based on content."""
+        try:
+            prompt = f"""
+            Generate 5-10 advanced research questions inspired by the following content. Focus on open problems, future directions, and gaps in the field.
+
+            CONTENT:
+            {content[:4000]}
+            """
+            return self._make_api_call_with_retry(prompt, operation_name="research questions generation")
+        except Exception as e:
+            logger.error(f"Error generating research questions: {e}")
+            return f"Error generating research questions: {str(e)}"
+
+    def build_hypotheses(self, content: str) -> str:
+        """Build hypotheses based on content."""
+        try:
+            prompt = f"""
+            Formulate 3-5 testable hypotheses based on the following content. Each hypothesis should be clear, specific, and grounded in the material.
+
+            CONTENT:
+            {content[:4000]}
+            """
+            return self._make_api_call_with_retry(prompt, operation_name="hypotheses building")
+        except Exception as e:
+            logger.error(f"Error building hypotheses: {e}")
+            return f"Error building hypotheses: {str(e)}"
+
+    def generate_research_proposal(self, content: str) -> str:
+        """Generate a research proposal based on content."""
+        try:
+            prompt = f"""
+            Draft a 1-2 page research proposal based on the following content. Include background, objectives, methodology, expected outcomes, and significance.
+
+            CONTENT:
+            {content[:4000]}
+            """
+            return self._make_api_call_with_retry(prompt, operation_name="research proposal generation")
+        except Exception as e:
+            logger.error(f"Error generating research proposal: {e}")
+            return f"Error generating research proposal: {str(e)}"
 
 
 # Example usage and testing
