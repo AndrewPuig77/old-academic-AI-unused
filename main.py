@@ -428,11 +428,19 @@ def main():
         
         # Handle provider switch
         if selected_provider != st.session_state.current_provider:
+            # Preserve uploaded file and analysis options
+            preserved_keys = {}
+            for k in ['uploaded_file', 'document_type', 'analysis_options']:
+                if k in st.session_state:
+                    preserved_keys[k] = st.session_state[k]
             with st.spinner(f"Switching to {selected_provider}..."):
                 if st.session_state.ai_analyzer.switch_provider(selected_provider.lower()):
                     st.session_state.current_provider = selected_provider
+                    # Restore preserved session state
+                    for k, v in preserved_keys.items():
+                        st.session_state[k] = v
                     st.success(f"Switched to {selected_provider}!")
-                    st.rerun()
+                    st.experimental_rerun()
                 else:
                     st.error(f"Failed to switch to {selected_provider}")
         
