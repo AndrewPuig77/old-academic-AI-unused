@@ -534,6 +534,16 @@ def main():
             ],
             help="Select the type of document to get the most relevant analysis options"
         )
+        # Clear previous results when document type changes
+        if 'last_document_type' not in st.session_state or st.session_state['last_document_type'] != document_type:
+            for k in [
+                'analysis_results', 'analyzed_content', 'paper_name',
+                'study_flashcards', 'study_questions', 'study_guide', 'material_analysis',
+                'related_papers', 'research_questions', 'hypotheses', 'research_proposal'
+            ]:
+                if k in st.session_state:
+                    del st.session_state[k]
+            st.session_state['last_document_type'] = document_type
         
         # File uploader
         uploaded_file = st.file_uploader(
@@ -542,8 +552,15 @@ def main():
             help="Upload a research paper, textbook chapter, lecture notes, or any academic material (PDF, Word, or Text format - max 10MB)",
             key=f"file_uploader_{st.session_state.get('current_provider', 'default')}"
         )
-        
+        # Clear previous results when a new file is uploaded
         if uploaded_file is not None:
+            for k in [
+                'analysis_results', 'analyzed_content', 'paper_name',
+                'study_flashcards', 'study_questions', 'study_guide', 'material_analysis',
+                'related_papers', 'research_questions', 'hypotheses', 'research_proposal'
+            ]:
+                if k in st.session_state:
+                    del st.session_state[k]
             # Display file info
             st.markdown(f"**File:** {uploaded_file.name}")
             st.markdown(f"**Size:** {uploaded_file.size / 1024 / 1024:.2f} MB")
