@@ -452,7 +452,11 @@ def main():
                         if k not in st.session_state:
                             st.session_state[k] = None
                     st.success(f"Switched to {selected_provider}!")
-                    st.experimental_rerun()
+                    try:
+                        st.experimental_rerun()
+                    except AttributeError as rerun_error:
+                        st.error(f"Rerun error: {rerun_error}")
+                        # Optionally log or handle further
                 else:
                     st.error(f"Failed to switch to {selected_provider}")
         
