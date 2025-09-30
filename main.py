@@ -1026,19 +1026,36 @@ def main():
                     with st.spinner("🔍 Analyzing class material..."):
                         try:
                             analyzer = st.session_state.ai_analyzer
-                            
-                            material_type = st.selectbox(
-                                "Material type:",
-                                ["textbook", "lecture_notes", "assignment", "handout", "other"],
-                                key="material_type_selector"
-                            )
-                            
+                            # Use original document_type if available
+                            # Always match material_type to document_type selected in Upload & Analyze
+                            material_type = st.session_state.get('analysis_options', {}).get('document_type', '📚 Textbook Chapter')
+                            # Rebuild analysis_options from UI selections
+                            analysis_options = {
+                                'document_type': material_type,
+                                'summary': st.checkbox("📝 Generate Summary", value=True, key="study_summary"),
+                                'keywords': st.checkbox("🏷️ Extract Keywords", value=True, key="study_keywords"),
+                                'detailed': st.checkbox("📋 Detailed Analysis", value=True, key="study_detailed"),
+                                'concepts': st.checkbox("🎯 Key Concepts", value=True, key="study_concepts"),
+                                'examples': st.checkbox("💡 Examples & Cases", value=True, key="study_examples"),
+                                'questions': st.checkbox("❓ Generate Study Questions", value=True, key="study_questions"),
+                                'difficulty': st.checkbox("📊 Assess Difficulty Level", value=False, key="study_difficulty"),
+                                'structure': st.checkbox("🏗️ Structure Analysis", value=True, key="study_structure"),
+                                'arguments': st.checkbox("💭 Key Arguments", value=True, key="study_arguments"),
+                                'improvements': st.checkbox("✨ Improvement Suggestions", value=False, key="study_improvements"),
+                                'findings': st.checkbox("📈 Key Findings", value=True, key="study_findings"),
+                                'recommendations': st.checkbox("💡 Recommendations", value=True, key="study_recommendations"),
+                                'main_points': st.checkbox("🎯 Main Points", value=True, key="study_main_points"),
+                                'context': st.checkbox("🌍 Context Analysis", value=False, key="study_context"),
+                                'citations': st.checkbox("📚 References", value=False, key="study_citations"),
+                                'methodology': False,
+                                'gaps': False,
+                                'future_work': False
+                            }
                             analysis_result = analyzer.get_analyzer().analyze_class_material(
-                                analyzed_content, material_type
+                                analyzed_content, analysis_options, material_type
                             )
                             st.session_state['material_analysis'] = analysis_result
                             st.success("🎯 Material analysis complete!")
-                            
                         except Exception as e:
                             st.error(f"❌ Error analyzing material: {str(e)}")
             

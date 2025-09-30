@@ -19,6 +19,55 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 class GeminiAnalyzer:
+    def analyze_class_material_groq_style(self, content: str, material_type: str = "general") -> str:
+        """Analyze class material for study purposes (Groq-style prompt)."""
+        try:
+            prompt = f"""
+            Analyze this {material_type} class material to help students understand and learn effectively.
+
+            🎓 CLASS MATERIAL ANALYSIS:
+
+            **Content Overview**:
+            - What is the main purpose of this material?
+            - How does it fit into the broader course context?
+            - What level of understanding is expected?
+
+            **Learning Objectives**:
+            - What should students be able to do after studying this?
+            - Key skills and knowledge to be gained
+            - Connection to course goals
+
+            **Difficulty Assessment**:
+            - What makes this material challenging?
+            - Prerequisites needed
+            - Estimated time required for mastery
+
+            **Key Learning Points** (organized by priority):
+            1. **Essential Concepts** - Must know
+            2. **Important Details** - Should know
+            3. **Supplementary Information** - Nice to know
+
+            **Study Recommendations**:
+            - Best approaches for this type of material
+            - Effective study techniques
+            - How to avoid common pitfalls
+
+            **Assessment Preparation**:
+            - Likely exam/assignment formats
+            - Critical thinking questions
+            - Practical applications
+
+            **Connection Points**:
+            - Links to other course materials
+            - Real-world applications
+            - Interdisciplinary connections
+
+            Class Material: {content[:8000]}
+            """
+            return self._make_api_call_with_retry(prompt, operation_name="Groq-style class material analysis")
+        except Exception as e:
+            logger.error(f"Error analyzing class material (Groq-style): {e}")
+            return f"Error analyzing class material: {str(e)}"
     def __init__(self, model_name: str = None):
         self.api_key = os.getenv("GOOGLE_API_KEY")
         if not self.api_key or self.api_key == "your_google_api_key_here":
@@ -40,27 +89,89 @@ class GeminiAnalyzer:
         }
         logger.info(f"Gemini analyzer initialized with model: {self.model_name}")
     
-    def analyze_class_material(self, content: str, material_type: str = "textbook") -> Dict[str, str]:
+    def analyze_class_material(self, content: str, analysis_options: Dict[str, bool], material_type: str = "textbook") -> Dict[str, str]:
         """
-        Analyze study material (textbook, lecture notes, handout, etc.) and return key sections.
+        Analyze study material (textbook, lecture notes, handout, etc.) and return all requested analysis sections.
         """
         results = {}
+        results['material_type'] = material_type
+        results['content_length'] = len(content)
         try:
             # Summary
-            results['summary'] = self._make_api_call_with_retry(
-                f"As an educational expert, provide a concise summary of the following {material_type} material.\n\nCONTENT:\n{content[:4000]}",
-                operation_name="material summary"
-            )
+            if analysis_options.get('summary', False):
+                results['summary'] = self._make_api_call_with_retry(
+                    f"As an educational expert, provide a concise summary of the following {material_type} material.\n\nCONTENT:\n{content[:4000]}",
+                    operation_name="material summary"
+                )
             # Key Concepts
-            results['concepts'] = self._make_api_call_with_retry(
-                f"List and explain the key concepts found in this {material_type} material.\n\nCONTENT:\n{content[:4000]}",
-                operation_name="key concepts extraction"
-            )
+            if analysis_options.get('concepts', False):
+                results['concepts'] = self._make_api_call_with_retry(
+                    f"List and explain the key concepts found in this {material_type} material.\n\nCONTENT:\n{content[:4000]}",
+                    operation_name="key concepts extraction"
+                )
             # Examples
-            results['examples'] = self._make_api_call_with_retry(
-                f"Extract and describe important examples or case studies from this {material_type} material.\n\nCONTENT:\n{content[:4000]}",
-                operation_name="examples extraction"
-            )
+            if analysis_options.get('examples', False):
+                results['examples'] = self._make_api_call_with_retry(
+                    f"Extract and describe important examples or case studies from this {material_type} material.\n\nCONTENT:\n{content[:4000]}",
+                    operation_name="examples extraction"
+                )
+            # Keywords
+            if analysis_options.get('keywords', False):
+                results['keywords'] = self._make_api_call_with_retry(
+                    self._get_keywords_prompt(content, material_type),
+                    operation_name="keywords extraction"
+                )
+            # Detailed Analysis
+            if analysis_options.get('detailed', False):
+                results['detailed'] = self._make_api_call_with_retry(
+                    f"Provide a detailed analysis of this {material_type} material.\n\nCONTENT:\n{content[:4000]}",
+                    operation_name="detailed analysis"
+                )
+            # Questions
+            if analysis_options.get('questions', False):
+                results['questions'] = self.create_practice_questions(content)
+            # Difficulty
+            if analysis_options.get('difficulty', False):
+                results['difficulty'] = self._make_api_call_with_retry(
+                    f"Assess the difficulty level of this {material_type} material for students.\n\nCONTENT:\n{content[:4000]}",
+                    operation_name="difficulty assessment"
+                )
+            # Structure
+            if analysis_options.get('structure', False):
+                results['structure'] = self._make_api_call_with_retry(
+                    f"Analyze the structure and organization of this {material_type} material.\n\nCONTENT:\n{content[:4000]}",
+                    operation_name="structure analysis"
+                )
+            # Arguments
+            if analysis_options.get('arguments', False):
+                results['arguments'] = self._make_api_call_with_retry(
+                    f"Identify and explain the key arguments presented in this {material_type} material.\n\nCONTENT:\n{content[:4000]}",
+                    operation_name="arguments analysis"
+                )
+            # Improvements
+            if analysis_options.get('improvements', False):
+                results['improvements'] = self._make_api_call_with_retry(
+                    f"Suggest improvements for this {material_type} material.\n\nCONTENT:\n{content[:4000]}",
+                    operation_name="improvement suggestions"
+                )
+            # Main Points
+            if analysis_options.get('main_points', False):
+                results['main_points'] = self._make_api_call_with_retry(
+                    f"List the main points covered in this {material_type} material.\n\nCONTENT:\n{content[:4000]}",
+                    operation_name="main points extraction"
+                )
+            # Context
+            if analysis_options.get('context', False):
+                results['context'] = self._make_api_call_with_retry(
+                    f"Analyze the context and background of this {material_type} material.\n\nCONTENT:\n{content[:4000]}",
+                    operation_name="context analysis"
+                )
+            # Citations
+            if analysis_options.get('citations', False):
+                results['citations'] = self._make_api_call_with_retry(
+                    f"Extract all citations and references from this {material_type} material.\n\nCONTENT:\n{content[:4000]}",
+                    operation_name="citations extraction"
+                )
             return results
         except Exception as e:
             logger.error(f"Error during study material analysis: {str(e)}")
