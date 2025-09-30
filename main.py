@@ -440,18 +440,11 @@ def main():
             with st.spinner(f"Switching to {selected_provider}..."):
                 if st.session_state.ai_analyzer.switch_provider(selected_provider.lower()):
                     st.session_state.current_provider = selected_provider
-                    # Restore preserved session state
-                    for k, v in preserved_keys.items():
-                        st.session_state[k] = v
-                    # Ensure all keys exist (initialize missing ones)
-                    for k in [
-                        'uploaded_file', 'document_type', 'analysis_options',
-                        'analysis_results', 'analyzed_content', 'paper_name',
-                        'study_flashcards', 'study_questions', 'study_guide', 'material_analysis'
-                    ]:
-                        if k not in st.session_state:
-                            st.session_state[k] = None
-                    st.success(f"Switched to {selected_provider}!")
+                    # Clear uploaded file and related info on provider switch
+                    st.session_state['uploaded_file'] = None
+                    st.session_state['document_type'] = None
+                    st.session_state['analysis_options'] = None
+                    st.success(f"Switched to {selected_provider}! Document and options cleared.")
                     try:
                         st.rerun()
                     except AttributeError as rerun_error:
@@ -769,74 +762,60 @@ def main():
                 if results.get('difficulty'):
                     with st.expander("📊 Difficulty Assessment"):
                         st.markdown(results['difficulty'])
+                # Assignment/Essay specific results
+                if results.get('structure'):
+                    with st.expander("🏗️ Structure Analysis"):
+                        st.markdown(results['structure'])
+                if results.get('arguments'):
+                    with st.expander("💭 Key Arguments"):
+                        st.markdown(results['arguments'])
+                if results.get('improvements'):
+                    with st.expander("✨ Improvement Suggestions"):
+                        st.markdown(results['improvements'])
+                # Report/Guide specific results
+                if results.get('findings'):
+                    with st.expander("� Key Findings"):
+                        st.markdown(results['findings'])
+                if results.get('recommendations'):
+                    with st.expander("💡 Recommendations"):
+                        st.markdown(results['recommendations'])
+                # General results
+                if results.get('main_points'):
+                    with st.expander("🎯 Main Points"):
+                        st.markdown(results['main_points'])
+                if results.get('context'):
+                    with st.expander("🌍 Context Analysis"):
+                        st.markdown(results['context'])
+                if results.get('citations'):
+                    title = "📚 Citations & References" if "Research Paper" in document_type else "📚 References & Sources"
+                    with st.expander(title):
+                        st.markdown(results['citations'])
+                if results.get('keywords'):
+                    with st.expander("🏷️ Key Terms & Concepts"):
+                        st.markdown(results['keywords'])
+                if results.get('detailed'):
+                    with st.expander("📋 Detailed Analysis"):
+                        st.markdown(results['detailed'])
+                # Export options
+                st.subheader("📤 Export Results")
+                col1, col2 = st.columns(2)
+                with col1:
+                    if st.button("📄 Download as Text"):
+                        formatted_results = format_analysis_results(results, document_name)
+                        st.download_button(
+                            label="📄 Download Analysis",
+                            data=formatted_results,
+                            file_name=f"analysis_{document_name.replace('.pdf', '.txt')}",
+                            mime='text/plain'
+                        )
+                with col2:
+                    if st.button("📊 Generate Report"):
+                        # Initialize the advanced report generator
+                        report_generator = AdvancedReportGenerator()
+                        # Display the advanced interactive report
+                        report_generator.display_streamlit_report(results, document_name)
             else:
                 st.info("No analysis results available. Please upload and analyze a document.")
-            
-            # Assignment/Essay specific results
-            if results.get('structure'):
-                with st.expander("🏗️ Structure Analysis"):
-                    st.markdown(results['structure'])
-            
-            if results.get('arguments'):
-                with st.expander("💭 Key Arguments"):
-                    st.markdown(results['arguments'])
-            
-            if results.get('improvements'):
-                with st.expander("✨ Improvement Suggestions"):
-                    st.markdown(results['improvements'])
-            
-            # Report/Guide specific results
-            if results.get('findings'):
-                with st.expander("� Key Findings"):
-                    st.markdown(results['findings'])
-            
-            if results.get('recommendations'):
-                with st.expander("💡 Recommendations"):
-                    st.markdown(results['recommendations'])
-            
-            # General results
-            if results.get('main_points'):
-                with st.expander("🎯 Main Points"):
-                    st.markdown(results['main_points'])
-            
-            if results.get('context'):
-                with st.expander("🌍 Context Analysis"):
-                    st.markdown(results['context'])
-            
-            if results.get('citations'):
-                title = "📚 Citations & References" if "Research Paper" in document_type else "📚 References & Sources"
-                with st.expander(title):
-                    st.markdown(results['citations'])
-            
-            if results.get('keywords'):
-                with st.expander("🏷️ Key Terms & Concepts"):
-                    st.markdown(results['keywords'])
-            
-            if results.get('detailed'):
-                with st.expander("📋 Detailed Analysis"):
-                    st.markdown(results['detailed'])
-            
-            # Export options
-            st.subheader("📤 Export Results")
-            col1, col2 = st.columns(2)
-            
-            with col1:
-                if st.button("📄 Download as Text"):
-                    formatted_results = format_analysis_results(results, document_name)
-                    st.download_button(
-                        label="📄 Download Analysis",
-                        data=formatted_results,
-                        file_name=f"analysis_{document_name.replace('.pdf', '.txt')}",
-                        mime='text/plain'
-                    )
-            
-            with col2:
-                if st.button("📊 Generate Report"):
-                    # Initialize the advanced report generator
-                    report_generator = AdvancedReportGenerator()
-                    
-                    # Display the advanced interactive report
-                    report_generator.display_streamlit_report(results, document_name)
         
         else:
             st.info("📤 Upload and analyze an academic document first to see results here.")
