@@ -19,6 +19,47 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 class GeminiAnalyzer:
+    def analyze_class_material(self, content: str, material_type: str = "textbook") -> Dict[str, str]:
+        """
+        Analyze study material (textbook, lecture notes, handout, etc.) and return key sections.
+        """
+        results = {}
+        try:
+            # Summary
+            results['summary'] = self._make_api_call_with_retry(
+                f"As an educational expert, provide a concise summary of the following {material_type} material.\n\nCONTENT:\n{content[:4000]}",
+                operation_name="material summary"
+            )
+            # Key Concepts
+            results['concepts'] = self._make_api_call_with_retry(
+                f"List and explain the key concepts found in this {material_type} material.\n\nCONTENT:\n{content[:4000]}",
+                operation_name="key concepts extraction"
+            )
+            # Examples
+            results['examples'] = self._make_api_call_with_retry(
+                f"Extract and describe important examples or case studies from this {material_type} material.\n\nCONTENT:\n{content[:4000]}",
+                operation_name="examples extraction"
+            )
+            # Study Questions
+            results['questions'] = self.create_practice_questions(content)
+            # Difficulty Assessment
+            results['difficulty'] = self._make_api_call_with_retry(
+                f"Assess the difficulty level of this {material_type} material for students.\n\nCONTENT:\n{content[:4000]}",
+                operation_name="difficulty assessment"
+            )
+            # Keywords
+            results['keywords'] = self._make_api_call_with_retry(
+                self._get_keywords_prompt(content, material_type),
+                operation_name="keywords extraction"
+            )
+            # Study Guide
+            results['study_guide'] = self.build_study_guide(content)
+            # Flashcards
+            results['study_flashcards'] = self.generate_flashcards(content)
+            return results
+        except Exception as e:
+            logger.error(f"Error analyzing class material: {e}")
+            return {"error": str(e)}
     """
     Handles analysis of research papers using Google's Gemini AI.
     Provides specialized prompts and analysis functions for academic content.
