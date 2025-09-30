@@ -133,9 +133,15 @@ class UnifiedAIAnalyzer:
         
         provider_lower = provider.lower()
         
-        # Return cached analyzer if available
-        if provider_lower in self.analyzers:
-            return self.analyzers[provider_lower]
+        # Return cached analyzer if available and valid
+        cached = self.analyzers.get(provider_lower)
+        if cached is not None:
+            # Safety check: ensure GeminiAnalyzer has model attribute
+            if provider_lower == "gemini" and not hasattr(cached, "model"):
+                logger.warning("Cached GeminiAnalyzer missing 'model', re-instantiating.")
+                cached = None
+        if cached is not None:
+            return cached
         
         # Create new analyzer and cache it
         try:
