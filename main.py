@@ -428,9 +428,13 @@ def main():
         
         # Handle provider switch
         if selected_provider != st.session_state.current_provider:
-            # Preserve uploaded file and analysis options
+            # Preserve uploaded file, analysis options, and results
             preserved_keys = {}
-            for k in ['uploaded_file', 'document_type', 'analysis_options']:
+            for k in [
+                'uploaded_file', 'document_type', 'analysis_options',
+                'analysis_results', 'analyzed_content', 'paper_name',
+                'study_flashcards', 'study_questions', 'study_guide', 'material_analysis'
+            ]:
                 if k in st.session_state:
                     preserved_keys[k] = st.session_state[k]
             with st.spinner(f"Switching to {selected_provider}..."):
@@ -439,6 +443,14 @@ def main():
                     # Restore preserved session state
                     for k, v in preserved_keys.items():
                         st.session_state[k] = v
+                    # Ensure all keys exist (initialize missing ones)
+                    for k in [
+                        'uploaded_file', 'document_type', 'analysis_options',
+                        'analysis_results', 'analyzed_content', 'paper_name',
+                        'study_flashcards', 'study_questions', 'study_guide', 'material_analysis'
+                    ]:
+                        if k not in st.session_state:
+                            st.session_state[k] = None
                     st.success(f"Switched to {selected_provider}!")
                     st.experimental_rerun()
                 else:
