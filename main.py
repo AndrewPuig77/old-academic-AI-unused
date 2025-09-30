@@ -534,15 +534,8 @@ def main():
             ],
             help="Select the type of document to get the most relevant analysis options"
         )
-        # Clear previous results when document type changes
+        # Only update last_document_type, do not clear results on type change
         if 'last_document_type' not in st.session_state or st.session_state['last_document_type'] != document_type:
-            for k in [
-                'analysis_results', 'analyzed_content', 'paper_name',
-                'study_flashcards', 'study_questions', 'study_guide', 'material_analysis',
-                'related_papers', 'research_questions', 'hypotheses', 'research_proposal'
-            ]:
-                if k in st.session_state:
-                    del st.session_state[k]
             st.session_state['last_document_type'] = document_type
         
         # File uploader
