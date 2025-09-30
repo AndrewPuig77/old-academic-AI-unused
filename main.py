@@ -455,7 +455,7 @@ def main():
         
         # Display current provider info
         analyzer_info = st.session_state.ai_analyzer.get_analyzer_info()
-        st.markdown(f"**Current:** {analyzer_info['provider']} ({analyzer_info['model_name']})")
+        st.markdown(f"**Current:** {analyzer_info['provider']}")
         
         st.markdown("---")
         # --- Clear Results Button ---
@@ -653,25 +653,25 @@ def main():
                     # Create progress bar
                     progress_bar = st.progress(0)
                     status_text = st.empty()
-                    
+
                     # Step 1: Initialize processors
                     status_text.text("🔧 Initializing AI processors...")
                     progress_bar.progress(10)
                     document_processor = DocumentProcessor()
                     analyzer = st.session_state.ai_analyzer
-                    
+
                     # Step 2: Save uploaded file
                     status_text.text("💾 Saving uploaded file...")
                     progress_bar.progress(20)
                     temp_path = f"uploads/{uploaded_file.name}"
                     with open(temp_path, "wb") as f:
                         f.write(uploaded_file.read())
-                    
+
                     # Step 3: Extract text from document
                     status_text.text("📄 Extracting text from document...")
                     progress_bar.progress(40)
                     extracted_text = document_processor.extract_text(temp_path)
-                    
+
                     # Step 4: Prepare analysis options
                     status_text.text("⚙️ Configuring analysis options...")
                     progress_bar.progress(50)
@@ -683,7 +683,6 @@ def main():
                         'gaps': include_gaps if 'include_gaps' in locals() else False,
                         'keywords': include_keywords,
                         'detailed': detailed_analysis,
-                        # New options for different document types
                         'concepts': include_concepts if 'include_concepts' in locals() else False,
                         'examples': include_examples if 'include_examples' in locals() else False,
                         'questions': include_questions if 'include_questions' in locals() else False,
@@ -697,9 +696,9 @@ def main():
                         'context': include_context if 'include_context' in locals() else False,
                         'future_work': include_future_work if 'include_future_work' in locals() else False
                     }
-                    
+
                     # Step 5: AI Analysis (longest step)
-                    status_text.text("🧠 Analyzing with Groq AI... (this may take 1-5 minutes)")
+                    status_text.text("🤖 Analyzing... (This may take 1-5 minutes)")
                     progress_bar.progress(60)
                     analysis_results = analyzer.analyze_paper(extracted_text, analysis_options)
                     progress_bar.progress(85)
