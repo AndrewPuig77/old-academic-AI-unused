@@ -539,7 +539,8 @@ def main():
         uploaded_file = st.file_uploader(
             "Choose your document",
             type=['pdf', 'docx', 'txt'],
-            help="Upload a research paper, textbook chapter, lecture notes, or any academic material (PDF, Word, or Text format - max 10MB)"
+            help="Upload a research paper, textbook chapter, lecture notes, or any academic material (PDF, Word, or Text format - max 10MB)",
+            key=f"file_uploader_{st.session_state.get('current_provider', 'default')}"
         )
         
         if uploaded_file is not None:
