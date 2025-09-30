@@ -969,6 +969,11 @@ class GroqAnalyzer:
                 - Support strategies for struggling students
                 - Alternative presentation methods
 
+                **Example Applications**:
+                - How difficulty levels could appear in assessments
+                - Sample problems or questions
+                - Practical application scenarios
+
                 Academic Material: {paper_text[:8000]}
                 """
                 
@@ -1531,6 +1536,10 @@ class GroqAnalyzer:
                 results['detailed_analysis'] = response.choices[0].message.content
                 time.sleep(0.5)
             
+            # Show detailed analysis as 'detailed' for consistency with Gemini and UI
+            if 'detailed_analysis' in results:
+                results['detailed'] = results['detailed_analysis']
+            
             return results
             
         except Exception as e:
@@ -1963,4 +1972,3 @@ class GroqAnalyzer:
         except Exception as e:
             logger.error(f"Error analyzing class material: {e}")
             return f"Error analyzing class material: {str(e)}"
-            
