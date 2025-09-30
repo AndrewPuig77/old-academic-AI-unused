@@ -736,47 +736,41 @@ def main():
         
         if 'analysis_results' in st.session_state:
             results = st.session_state['analysis_results']
-            document_name = st.session_state.get('paper_name', 'Unknown Document')
-            document_type = results.get('document_type', 'Unknown Type')
-            
-            st.markdown(f"### Results for: **{document_name}**")
-            st.markdown(f"**Document Type:** {document_type}")
-            
-            # Display results based on what was analyzed
-            if results.get('summary'):
-                title = "📝 Summary" if "Research Paper" not in document_type else "📝 Paper Summary"
-                with st.expander(title, expanded=True):
-                    st.markdown(results['summary'])
-            
-            # Research-specific results
-            if results.get('methodology'):
-                with st.expander("🔬 Methodology Analysis"):
-                    st.markdown(results['methodology'])
-            
-            if results.get('gaps'):
-                with st.expander("🔍 Research Gaps Identified"):
-                    st.markdown(results['gaps'])
-            
-            if results.get('future_work'):
-                with st.expander("🔮 Future Research Directions"):
-                    st.markdown(results['future_work'])
-            
-            # Study material specific results
-            if results.get('concepts'):
-                with st.expander("🎯 Key Concepts"):
-                    st.markdown(results['concepts'])
-            
-            if results.get('examples'):
-                with st.expander("� Examples & Cases"):
-                    st.markdown(results['examples'])
-            
-            if results.get('questions'):
-                with st.expander("❓ Study Questions"):
-                    st.markdown(results['questions'])
-            
-            if results.get('difficulty'):
-                with st.expander("📊 Difficulty Assessment"):
-                    st.markdown(results['difficulty'])
+            if results is not None:
+                document_name = st.session_state.get('paper_name', 'Unknown Document')
+                document_type = results.get('document_type', 'Unknown Type')
+                st.markdown(f"### Results for: **{document_name}**")
+                st.markdown(f"**Document Type:** {document_type}")
+                # Display results based on what was analyzed
+                if results.get('summary'):
+                    title = "📝 Summary" if "Research Paper" not in document_type else "📝 Paper Summary"
+                    with st.expander(title, expanded=True):
+                        st.markdown(results['summary'])
+                # Research-specific results
+                if results.get('methodology'):
+                    with st.expander("🔬 Methodology Analysis"):
+                        st.markdown(results['methodology'])
+                if results.get('gaps'):
+                    with st.expander("🔍 Research Gaps Identified"):
+                        st.markdown(results['gaps'])
+                if results.get('future_work'):
+                    with st.expander("🔮 Future Research Directions"):
+                        st.markdown(results['future_work'])
+                # Study material specific results
+                if results.get('concepts'):
+                    with st.expander("🎯 Key Concepts"):
+                        st.markdown(results['concepts'])
+                if results.get('examples'):
+                    with st.expander("� Examples & Cases"):
+                        st.markdown(results['examples'])
+                if results.get('questions'):
+                    with st.expander("❓ Study Questions"):
+                        st.markdown(results['questions'])
+                if results.get('difficulty'):
+                    with st.expander("📊 Difficulty Assessment"):
+                        st.markdown(results['difficulty'])
+            else:
+                st.info("No analysis results available. Please upload and analyze a document.")
             
             # Assignment/Essay specific results
             if results.get('structure'):
