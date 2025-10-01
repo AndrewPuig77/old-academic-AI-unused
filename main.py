@@ -428,28 +428,25 @@ def main():
         
         # Handle provider switch
         if selected_provider != st.session_state.current_provider:
-            # Preserve uploaded file, analysis options, and results
-            preserved_keys = {}
-            for k in [
+            # Clear all results and uploaded info when provider is switched
+            keys_to_clear = [
                 'uploaded_file', 'document_type', 'analysis_options',
                 'analysis_results', 'analyzed_content', 'paper_name',
-                'study_flashcards', 'study_questions', 'study_guide', 'material_analysis'
-            ]:
-                if k in st.session_state:
-                    preserved_keys[k] = st.session_state[k]
+                'study_flashcards', 'study_questions', 'study_guide', 'material_analysis',
+                'related_papers', 'research_questions', 'hypotheses', 'research_proposal',
+                'last_uploaded_file', 'last_document_type'
+            ]
             with st.spinner(f"Switching to {selected_provider}..."):
                 if st.session_state.ai_analyzer.switch_provider(selected_provider.lower()):
                     st.session_state.current_provider = selected_provider
-                    # Clear uploaded file and related info on provider switch
-                    st.session_state['uploaded_file'] = None
-                    st.session_state['document_type'] = None
-                    st.session_state['analysis_options'] = None
-                    st.success(f"Switched to {selected_provider}! Document and options cleared.")
+                    for k in keys_to_clear:
+                        if k in st.session_state:
+                            del st.session_state[k]
+                    st.success(f"Switched to {selected_provider}! All results and document info cleared.")
                     try:
                         st.rerun()
                     except AttributeError as rerun_error:
                         st.error(f"Rerun error: {rerun_error}")
-                        # Optionally log or handle further
                 else:
                     st.error(f"Failed to switch to {selected_provider}")
         
@@ -534,8 +531,16 @@ def main():
             ],
             help="Select the type of document to get the most relevant analysis options"
         )
-        # Only update last_document_type, do not clear results on type change
+        # Clear results when document type is switched
         if 'last_document_type' not in st.session_state or st.session_state['last_document_type'] != document_type:
+            for k in [
+                'analysis_results', 'analyzed_content', 'paper_name',
+                'study_flashcards', 'study_questions', 'study_guide', 'material_analysis',
+                'related_papers', 'research_questions', 'hypotheses', 'research_proposal',
+                'last_uploaded_file'
+            ]:
+                if k in st.session_state:
+                    del st.session_state[k]
             st.session_state['last_document_type'] = document_type
         
         # File uploader
@@ -545,15 +550,27 @@ def main():
             help="Upload a research paper, textbook chapter, lecture notes, or any academic material (PDF, Word, or Text format - max 10MB)",
             key=f"file_uploader_{st.session_state.get('current_provider', 'default')}"
         )
-        # Clear previous results when a new file is uploaded
-        if uploaded_file is not None:
+        # Clear results if file is removed or if a new file (different filename) is uploaded
+        if uploaded_file is None:
             for k in [
                 'analysis_results', 'analyzed_content', 'paper_name',
                 'study_flashcards', 'study_questions', 'study_guide', 'material_analysis',
-                'related_papers', 'research_questions', 'hypotheses', 'research_proposal'
+                'related_papers', 'research_questions', 'hypotheses', 'research_proposal',
+                'last_uploaded_file'
             ]:
                 if k in st.session_state:
                     del st.session_state[k]
+        elif uploaded_file is not None:
+            last_file = st.session_state.get('last_uploaded_file', None)
+            if last_file != uploaded_file.name:
+                for k in [
+                    'analysis_results', 'analyzed_content', 'paper_name',
+                    'study_flashcards', 'study_questions', 'study_guide', 'material_analysis',
+                    'related_papers', 'research_questions', 'hypotheses', 'research_proposal'
+                ]:
+                    if k in st.session_state:
+                        del st.session_state[k]
+                st.session_state['last_uploaded_file'] = uploaded_file.name
             # Display file info
             st.markdown(f"**File:** {uploaded_file.name}")
             st.markdown(f"**Size:** {uploaded_file.size / 1024 / 1024:.2f} MB")
@@ -962,7 +979,7 @@ def main():
             material_name = st.session_state.get('paper_name', 'Class Material')
             analyzed_content = st.session_state.get('analyzed_content', '')
             
-            st.success(f"✅ Class material loaded: {material_name}")
+            st.success(f"✅ Current material loaded: {material_name}")
             
             # Study Tools Options
             st.subheader("🛠️ Choose Your Study Tool")
